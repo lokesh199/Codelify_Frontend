@@ -31,7 +31,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
-    console.log('error inside apiclient.ts = ', error);
+    console.error('error inside apiclient.ts = ', error);
     const originalRequest = error.config;
 
     // Check if the error is a 401 Unauthorized and we haven't tried retrying this request yet

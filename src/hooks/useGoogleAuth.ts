@@ -20,7 +20,7 @@ export function useGoogleAuth() {
                 })
 
                 loginUser(response.data.accessToken);
-                alert("Authentication Successful");
+                console.log("Authentication Successful");
                 navigate("/dashboard");
             }
             catch(error) {

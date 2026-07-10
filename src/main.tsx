@@ -8,7 +8,7 @@ import '@mantine/core/styles.css';
 import './index.css';
 import { AuthProvider } from './AuthContext.tsx';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { createBrowserRouter, Outlet, Router, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom';
 import { Dashboard } from './components/Dashboard.tsx';
 import { Contest } from './components/Contest.tsx';
 import { Leaderboard } from './components/Leaderboard.tsx';
