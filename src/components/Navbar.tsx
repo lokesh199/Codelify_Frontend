@@ -1,18 +1,24 @@
 import { useState } from 'react';
-import { ActionIcon, Avatar, Burger, Container, Divider, Drawer, Group, Menu, ScrollArea, UnstyledButton, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Avatar, Burger, Button, Container, Divider, Drawer, Group, Menu, ScrollArea, UnstyledButton, useMantineColorScheme } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import classes from './Navbar.module.css';
 import { IconLogout, IconMoon, IconSun } from '@tabler/icons-react';
+import { useAuth } from '../AuthContext';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
 
 const links = [
   { link: '/', label: 'Home' },
-  { link: '/practice', label: 'Practice' },
+  { link: '/dashboard', label: 'Dashboard' },
+  { link: '/contest', label: 'Contests' },
+  { link: '/problems', label: 'Problems' }
 ];
 
-export default function Navbar({ user, onLogout }) {
+export default function Navbar() {
+  const { user, logoutUser, isAuthenticated } = useAuth();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [opened, { toggle, close }] = useDisclosure(false);
   const [active, setActive] = useState(links[0].link);
+  const { loginWithGoogle } = useGoogleAuth();
 
   const items = links.map((link) => (
     <a
@@ -32,19 +38,14 @@ export default function Navbar({ user, onLogout }) {
   return (
     <header className={classes.header}>
       <Container size="md" className={classes.inner} display="flex" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-        {/* 1. Left side placeholder (keeps the center perfectly aligned) */}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-          {/* If you add a Logo later, place it here. For now, we leave it empty or keep it for balance */}
         </div>
 
-        {/* 2. CENTERED LINKS */}
-        <Group gap={5} visibleFrom="xs" style={{ flex: 1, justifyContent: 'center' }}>
+        <Group gap={5} visibleFrom="xs" style={{ flex: 2, justifyContent: 'center' }}>
           {items}
         </Group>
 
-        {/* 3. RIGHT SIDE ITEMS (Dark Mode & User Profile) */}
         <Group gap="md" visibleFrom="xs" style={{ flex: 1, justifyContent: 'flex-end' }}>
-          {/* Dark Mode Switch */}
           <ActionIcon
             onClick={toggleColorScheme}
             variant="outline"
@@ -54,30 +55,35 @@ export default function Navbar({ user, onLogout }) {
           >
             {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
           </ActionIcon>
+          {
+            isAuthenticated
+              ?
+              <Menu shadow="md" width={150}>
+                <Menu.Target>
+                  <UnstyledButton>
+                    <Avatar
+                      src={user?.email}
+                      radius="xl"
+                      color="indigo"
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </UnstyledButton>
+                </Menu.Target>
 
-          {/* User Menu */}
-          <Menu shadow="md" width={200}>
-            <Menu.Target>
-              <UnstyledButton>
-                <Avatar
-                  src={user?.picture}
-                  radius="xl"
-                  color="indigo"
-                  style={{ cursor: 'pointer' }}
-                />
-              </UnstyledButton>
-            </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IconLogout size={14} />}
+                    onClick={logoutUser}
+                  >
+                    Logout
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+              :
+              <Button onClick={loginWithGoogle}>Login/Register</Button>
 
-            <Menu.Dropdown>
-              <Menu.Item
-                color="red"
-                leftSection={<IconLogout size={14} />}
-                onClick={onLogout}
-              >
-                Logout
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          }
         </Group>
 
         {/* Mobile Burger Menu - Stays right-aligned natively when mobile view triggers */}

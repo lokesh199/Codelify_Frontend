@@ -1,62 +1,42 @@
-import { useState } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Login } from './components/Login';
-import { Dashboard } from './components/Dashboard';
-import type { GoogleUser } from './utils/auth';
+import { useEffect, useState } from 'react';
+import apiClient from './apiClient';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-function App() {
-  // Load client ID from localStorage, then fallback to import.meta.env
-  const [clientId, setClientId] = useState<string>(() => {
-    const saved = localStorage.getItem('custom_google_client_id');
-    if (saved) return saved;
-    return (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || '';
-  });
+export default function App() {
+  const {user, loginUser, isAuthenticated, logoutUser} = useAuth();
+  const [loading, setLoading] = useState<boolean>(true);
 
-  console.log('clientId = ', clientId);
-
-  // Load auth state from localStorage
-  const [user, setUser] = useState<GoogleUser | null>(() => {
-    const saved = localStorage.getItem('auth_user');
-    if (saved) {
+  useEffect(() => {
+    const initializeAuth = async () => {
       try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return null;
+        // Silently check if the user has a valid refresh cookie active
+        const response = await apiClient.post('/api/v1/auth/refresh');
+        loginUser(response.data.accessToken);
+      } catch (err) {
+        // No valid session cookie found; user is unauthenticated safely
+        logoutUser();
+      } finally {
+        setLoading(false);
       }
-    }
-    return null;
-  });
+    };
 
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('auth_token');
-  });
+    initializeAuth();
+  }, []);
 
-  const handleLogin = (newUser: GoogleUser, newToken: string) => {
-    setUser(newUser);
-    setToken(newToken);
-    console.log('new token = ', newToken);
-    localStorage.setItem('auth_user', JSON.stringify(newUser));
-    localStorage.setItem('auth_token', newToken);
-  };
+  if (loading) return <div>Loading secure session...</div>;
 
-  const handleLogout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_token');
-  };
+  if(!isAuthenticated) {
+    return <Navigate to="/login" />
+  }
+
+  console.log('user = ', user);
 
   return (
-    <GoogleOAuthProvider clientId={clientId || '123456-dummy.apps.googleusercontent.com'}>
-      {user && token ? (
-        <Dashboard user={user} onLogout={handleLogout} />
-      ) : (
-        <Login
-          onLogin={handleLogin}
-        />
-      )}
-    </GoogleOAuthProvider>
+    <div>
+      This is the main protected home page {user?.email}.
+      <br />
+      
+    </div>
   );
 }
-
-export default App;

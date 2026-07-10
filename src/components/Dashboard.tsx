@@ -1,38 +1,28 @@
-import React from 'react';
-import type { GoogleUser } from '../utils/auth';
-import Navbar from './Navbar';
+import { useAuth } from '../AuthContext';
 
-interface DashboardProps {
-  user: GoogleUser;
-  onLogout: () => void;
-}
+export function Dashboard(): React.JSX.Element {
+  const { user, isAuthenticated, isLoading, logoutUser } = useAuth();
 
-export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
-  const testApi = async () => {
-    const token = localStorage.getItem('auth_token');
+  if (isLoading) {
+    return <div>Verifying your identity...</div>;
+  }
 
-    try {
-      const res = await fetch('http://localhost:8080/api/dashboard', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      console.log('response of /api/me ', res);
+  console.log('isAuthenticated = ', isAuthenticated);
+  console.log('user = ', user);
 
-      const data = await res.text();
-      console.log('data of /api/me ', data);
-    } catch (error) {
-      console.error('error from /api/me', error);
-    }
-  };
+  if (!isAuthenticated || !user) {
+    return <div>Access Denied. Please log in.</div>;
+  }
 
   return (
-    <>
-      <Navbar user={user} onLogout={onLogout} />
-      <h1>Welcome to the dashboard</h1>
-      <button onClick={testApi}>Click Me</button>
-    </>
+    <div style={{ padding: '20px' }}>
+      <h1>Welcome back, {user.name}!</h1>
+      <p>Email registered: {user.email}</p>
+      <p>Your current platform permission role: <strong>{'admin'}</strong></p>
+      
+      <button onClick={logoutUser} style={{ marginTop: '20px', color: 'red' }}>
+        Logout
+      </button>
+    </div>
   );
-};
+}
